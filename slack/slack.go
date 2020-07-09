@@ -1,7 +1,9 @@
 package slack
 
 import (
+	"crypto/rand"
 	"fmt"
+	"math/big"
 	"strings"
 
 	"github.com/slack-go/slack"
@@ -12,7 +14,7 @@ import (
    NOTE: command_arg_1 and command_arg_2 represent optional parameteras that you define
    in the Slack API UI
 */
-const helpMessage = "type in '@BOT_NAME <command_arg_1> <command_arg_2>'"
+const helpMessage = "type in '@choicebot <command_arg_1> <command_arg_2>'"
 
 /*
    CreateSlackClient sets up the slack RTM (real-timemessaging) client library,
@@ -72,8 +74,8 @@ func sendHelp(slackClient *slack.RTM, message, slackChannel string) {
 // sendResponse is NOT unimplemented --- write code in the function body to complete!
 
 func sendResponse(slackClient *slack.RTM, message, slackChannel string) {
-	command := strings.ToLower(message)
-	println("[RECEIVED] sendResponse:", command)
+	lowerMessage := strings.ToLower(message)
+	println("[RECEIVED] sendResponse:", lowerMessage)
 
 	// START SLACKBOT CUSTOM CODE
 	// ===============================================================
@@ -81,6 +83,19 @@ func sendResponse(slackClient *slack.RTM, message, slackChannel string) {
 	//      1. Implement sendResponse for one or more of your custom Slackbot commands.
 	//         You could call an external API here, or create your own string response. Anything goes!
 	//      2. STRETCH: Write a goroutine that calls an external API based on the data received in this function.
+	r := rand.Reader
+	parsedMessage := strings.Split(lowerMessage, " ")
+	command, args := parsedMessage[0], parsedMessage[1:]
+	switch command {
+	case "choose":
+		fmt.Println(args)
+		num, _ := rand.Int(r, big.NewInt(int64(len(args))))
+		choice := args[num.Int64()]
+		fmt.Println(choice)
+		slackClient.SendMessage(slackClient.NewOutgoingMessage(choice, slackChannel))
+	default:
+		fmt.Println("No command entered")
+	}
 	// ===============================================================
 	// END SLACKBOT CUSTOM CODE
 }
